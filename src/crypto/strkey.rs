@@ -211,20 +211,20 @@ mod tests {
     #[test]
     fn test_pre_auth_tx() {
         let keypair = KeyPair::from_network(&Network::new_test()).unwrap();
-        let bytes = keypair.public_key().as_bytes();
-        let encoded = encode_pre_auth_tx(&bytes);
+        let pk = keypair.public_key();
+        let encoded = encode_pre_auth_tx(pk.as_bytes());
         assert_eq!('T', encoded.chars().next().unwrap());
         let decoded = decode_pre_auth_tx(&encoded).unwrap();
-        assert_eq!(bytes.to_vec(), decoded);
+        assert_eq!(pk.as_bytes(), &decoded[..]);
     }
 
     #[test]
     fn test_sha256_hash() {
         let keypair = KeyPair::from_network(&Network::new_test()).unwrap();
-        let bytes = keypair.public_key().as_bytes();
-        let encoded = encode_sha256_hash(&bytes);
+        let pk = keypair.public_key();
+        let encoded = encode_sha256_hash(&pk.as_bytes());
         assert_eq!('X', encoded.chars().next().unwrap());
         let decoded = decode_sha256_hash(&encoded).unwrap();
-        assert_eq!(bytes.to_vec(), decoded);
+        assert_eq!(pk.as_bytes(), &decoded[..]);
     }
 }

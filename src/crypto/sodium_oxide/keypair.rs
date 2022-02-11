@@ -4,25 +4,26 @@ use crate::crypto::{strkey, EddsaSigner};
 use crate::error::{Error, Result};
 use crate::network::Network;
 use crate::PublicKey;
-use sodiumoxide::crypto::sign::ed25519;
+use ed25519::signature::{Signer, Verifier};
+use sodiumoxide::crypto::sign::ed25519 as sodium;
 
 /// The secret key of the account.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SecretKey {
-    key: ed25519::SecretKey,
-    seed: ed25519::Seed,
+    key: sodium::SecretKey,
+    seed: sodium::Seed,
 }
 
 /// The secret and public key pair of the account.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct KeyPair {
-    public: PublicKey,
+    public: sodium::PublicKey,
     secret: SecretKey,
 }
 
 impl SecretKey {
     /// Return the inner key.
-    pub fn inner(&self) -> &ed25519::SecretKey {
+    pub fn inner(&self) -> &sodium::SecretKey {
         &self.key
     }
 
@@ -33,20 +34,16 @@ impl SecretKey {
 }
 
 impl EddsaSigner for KeyPair {
-    fn public_key(&self) -> &PublicKey {
-        &self.public
+    fn public_key(&self) -> PublicKey {
+        PublicKey(self.public.0)
     }
 
     fn sign(&self, message: &[u8]) -> Signature {
-        let sig = ed25519::sign_detached(message, &self.secret.inner());
-        Signature::new(sig.to_bytes())
+        self.secret.inner().sign(message)
     }
 
-    fn verify(&self, signature: &Signature, data: &[u8]) -> Result<bool> {
-        let sig = ed25519::Signature::from_bytes(&signature.as_bytes())
-            .map_err(|_| Error::InvalidSignature)?;
-        let pk = ed25519::PublicKey::from_slice(&self.public.0).ok_or(Error::InvalidPublicKey)?;
-        Ok(ed25519::verify_detached(&sig, data, &pk))
+    fn verify(&self, signature: &Signature, data: &[u8]) -> bool {
+        self.public.verify(data, signature).map_or(false, |_| true)
     }
 }
 
@@ -71,9 +68,8 @@ impl KeyPair {
 
     /// Crete a key pair from raw bytes.
     pub fn from_seed_bytes(data: &[u8]) -> Result<KeyPair> {
-        let the_seed = ed25519::Seed::from_slice(&data).ok_or(Error::InvalidSeed)?;
-        let (pk, sk) = ed25519::keypair_from_seed(&the_seed);
-        let public = PublicKey(pk.0);
+        let the_seed = sodium::Seed::from_slice(&data).ok_or(Error::InvalidSeed)?;
+        let (public, sk) = sodium::keypair_from_seed(&the_seed);
         let secret = SecretKey {
             key: sk,
             seed: the_seed,
@@ -183,8 +179,8 @@ mod tests {
             0x21, 0x9, 0x28, 0xCA, 0x96, 0x11, 0x39, 0x03, 0x29, 0xC8, 0x40, 0xC8, 0xE5, 0x64,
             0xE7, 0xA0, 0x72, 0x16, 0x02, 0x7A, 0xB4, 0xA,
         ];
-        assert_eq!(sign.to_vec(), expected_sign);
-        assert!(kp.verify(&sign, &message).unwrap());
+        assert_eq!(sign.to_bytes(), expected_sign[..]);
+        assert!(kp.verify(&sign, &message));
     }
 
     #[test]

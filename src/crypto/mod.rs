@@ -8,11 +8,10 @@ mod strkey;
 
 use sha2::Digest;
 
-use crate::error::Result;
-
 pub use self::public_key::{MuxedAccount, MuxedEd25519PublicKey, PublicKey};
 pub use self::signature::*;
 pub use self::strkey::*;
+pub use ed25519::Signature;
 #[cfg(feature = "sodium_oxide")]
 pub use sodium_oxide::*;
 
@@ -23,7 +22,7 @@ pub fn hash(m: &[u8]) -> Vec<u8> {
 
 pub trait EddsaSigner {
     /// Returns this key's PublicKey
-    fn public_key(&self) -> &PublicKey;
+    fn public_key(&self) -> PublicKey;
 
     /// Sign the `message`.
     fn sign(&self, message: &[u8]) -> Signature;
@@ -37,10 +36,10 @@ pub trait EddsaSigner {
 
     /// Return the signature hint, that is the last 4 bytes of the public key.
     fn signature_hint(&self) -> SignatureHint {
-        SignatureHint::from_public_key(self.public_key())
+        SignatureHint::from_public_key(&self.public_key())
     }
 
     /// Verifies the `signature` against the `data`.
     /// Returns `true` if the signature is valid, `false` otherwise.
-    fn verify(&self, signature: &Signature, data: &[u8]) -> Result<bool>;
+    fn verify(&self, signature: &Signature, data: &[u8]) -> bool;
 }

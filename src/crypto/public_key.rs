@@ -23,11 +23,6 @@ impl PublicKey {
         ))
     }
 
-    // /// Return the inner key.
-    // pub fn inner(&self) -> &ed25519::PublicKey {
-    //     &self.key
-    // }
-
     pub fn account_id(&self) -> String {
         strkey::encode_account_id(&self.0)
     }
