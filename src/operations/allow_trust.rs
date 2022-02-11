@@ -173,7 +173,7 @@ impl AllowTrustOperationBuilder {
 mod tests {
     use crate::account::TrustLineFlags;
     use crate::asset::CreditAssetType;
-    use crate::crypto::KeyPair;
+    use crate::crypto::{EddsaSigner, KeyPair};
     use crate::network::Network;
     use crate::operations::Operation;
     use crate::transaction::{Transaction, TransactionEnvelope, MIN_BASE_FEE};

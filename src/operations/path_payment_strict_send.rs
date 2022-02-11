@@ -259,7 +259,7 @@ impl PathPaymentStrictSendOperationBuilder {
 mod tests {
     use crate::amount::Amount;
     use crate::asset::Asset;
-    use crate::crypto::KeyPair;
+    use crate::crypto::{EddsaSigner, KeyPair};
     use crate::network::Network;
     use crate::operations::Operation;
     use crate::transaction::{Transaction, TransactionEnvelope, MIN_BASE_FEE};

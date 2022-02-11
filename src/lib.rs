@@ -16,7 +16,7 @@
 //! to sign transactions.
 //!
 //! ```rust
-//! use stellar_base::crypto::KeyPair;
+//! use stellar_base::crypto::{EddsaSigner, KeyPair};
 //!
 //! # fn run() -> stellar_base::error::Result<()> {
 //! let random_kp = KeyPair::random()?;
@@ -34,7 +34,7 @@
 //! ```rust
 //! use stellar_base::amount::Amount;
 //! use stellar_base::asset::Asset;
-//! use stellar_base::crypto::{KeyPair, PublicKey};
+//! use stellar_base::crypto::{EddsaSigner, KeyPair, PublicKey};
 //! use stellar_base::memo::Memo;
 //! use stellar_base::network::Network;
 //! use stellar_base::operations::Operation;
@@ -85,7 +85,6 @@ pub mod memo;
 pub mod network;
 pub mod operation_result;
 pub mod operations;
-pub mod signature;
 pub mod time_bounds;
 pub mod transaction;
 pub mod transaction_result;
@@ -93,7 +92,7 @@ pub mod xdr;
 mod xdr_generated;
 
 pub use self::asset::Asset;
-pub use self::crypto::{KeyPair, PublicKey};
+pub use self::crypto::PublicKey;
 pub use self::memo::Memo;
 pub use self::network::Network;
 pub use self::operation_result::OperationResult;

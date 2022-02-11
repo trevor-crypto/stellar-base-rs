@@ -121,7 +121,7 @@ mod tests {
     use super::{decode_pre_auth_tx, encode_pre_auth_tx};
     use super::{decode_secret_seed, encode_secret_seed};
     use super::{decode_sha256_hash, encode_sha256_hash};
-    use crate::crypto::KeyPair;
+    use crate::crypto::{EddsaSigner, KeyPair};
     use crate::network::Network;
 
     #[test]

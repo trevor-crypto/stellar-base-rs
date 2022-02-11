@@ -1,42 +1,46 @@
 //! Cryptographic functions.
-//!
-//! For long running programs, you should initialize the sodium
-//! library for optimal performance.
-//!
-//! ```rust
-//! use stellar_base::crypto;
-//!
-//! # fn run() -> stellar_base::error::Result<()> {
-//! crypto::init()?;
-//! // your program here.
-//! # Ok(())
-//! # }
-//! ```
-use crate::error::{Error, Result};
-use sodiumoxide::crypto::hash::sha256;
-use sodiumoxide::randombytes;
 
-mod keypair;
+mod public_key;
+mod signature;
+#[cfg(feature = "sodium_oxide")]
+mod sodium_oxide;
 mod strkey;
 
-pub use self::keypair::{KeyPair, MuxedAccount, MuxedEd25519PublicKey, PublicKey, SecretKey};
+use sha2::Digest;
+
+use crate::error::Result;
+
+pub use self::public_key::{MuxedAccount, MuxedEd25519PublicKey, PublicKey};
+pub use self::signature::*;
 pub use self::strkey::*;
+#[cfg(feature = "sodium_oxide")]
+pub use sodium_oxide::*;
 
 /// Compute sha256 hash of `m`.
 pub fn hash(m: &[u8]) -> Vec<u8> {
-    let digest = sha256::hash(&m);
-    digest.0.to_vec()
+    sha2::Sha256::digest(&m).to_vec()
 }
 
-/// Generate `size` random bytes.
-pub fn random_bytes(size: usize) -> Vec<u8> {
-    randombytes::randombytes(size)
-}
+pub trait EddsaSigner {
+    /// Returns this key's PublicKey
+    fn public_key(&self) -> &PublicKey;
 
-/// Initialize the sodium library and chooses faster version of the primitives
-/// if possible.
-///
-/// `init` also makes `KeyPair::random()` thread-safe.
-pub fn init() -> Result<()> {
-    sodiumoxide::init().map_err(|_| Error::SodiumInitFailed)
+    /// Sign the `message`.
+    fn sign(&self, message: &[u8]) -> Signature;
+
+    /// Sign the `message` together with the signature hint.
+    fn sign_decorated(&self, message: &[u8]) -> DecoratedSignature {
+        let hint = self.signature_hint();
+        let signature = self.sign(message);
+        DecoratedSignature::new(hint, signature)
+    }
+
+    /// Return the signature hint, that is the last 4 bytes of the public key.
+    fn signature_hint(&self) -> SignatureHint {
+        SignatureHint::from_public_key(self.public_key())
+    }
+
+    /// Verifies the `signature` against the `data`.
+    /// Returns `true` if the signature is valid, `false` otherwise.
+    fn verify(&self, signature: &Signature, data: &[u8]) -> Result<bool>;
 }

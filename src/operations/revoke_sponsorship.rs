@@ -1,10 +1,9 @@
 use crate::asset::Asset;
 use crate::claim::ClaimableBalanceId;
-use crate::crypto::{MuxedAccount, PublicKey};
+use crate::crypto::{MuxedAccount, PublicKey, SignerKey};
 use crate::error::{Error, Result};
 use crate::ledger::LedgerKey;
 use crate::operations::Operation;
-use crate::signature::SignerKey;
 use crate::xdr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -297,11 +296,10 @@ impl RevokeSponsorshipOperationBuilder {
 mod tests {
     use crate::asset::Asset;
     use crate::claim::ClaimableBalanceId;
-    use crate::crypto::KeyPair;
+    use crate::crypto::{KeyPair, SignerKey, EddsaSigner};
     use crate::ledger::LedgerKey;
     use crate::network::Network;
     use crate::operations::Operation;
-    use crate::signature::SignerKey;
     use crate::transaction::{Transaction, TransactionEnvelope, MIN_BASE_FEE};
     use crate::xdr::{XDRDeserialize, XDRSerialize};
 

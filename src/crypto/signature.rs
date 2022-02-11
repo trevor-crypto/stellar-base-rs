@@ -1,18 +1,17 @@
 //! Transaction signatures.
-use crate::crypto::{hash, PublicKey, SecretKey};
+use std::convert::TryInto;
+
+use crate::crypto::{hash, PublicKey};
 use crate::error::{Error, Result};
 use crate::network::Network;
 use crate::transaction::TransactionEnvelope;
 use crate::xdr::{self, XDRDeserialize, XDRSerialize};
-use sodiumoxide::crypto::sign::ed25519;
 use xdr_rs_serialize::de::XDRIn;
 use xdr_rs_serialize::ser::XDROut;
 
 /// A signature.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Signature {
-    sig: ed25519::Signature,
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Signature([u8; 64]);
 
 /// Last 4 bytes of a public key.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,21 +48,22 @@ pub struct Signer {
 }
 
 impl Signature {
-    /// Signs `data` using the `secret` key.
-    pub fn sign(secret: &SecretKey, data: &[u8]) -> Signature {
-        let sig = ed25519::sign_detached(data, &secret.inner());
-        Signature { sig }
+    /// Creates a new Signature from array
+    pub fn new(sb: [u8; 64]) -> Signature {
+        Signature(sb)
     }
 
     /// Returns a `Signature` from bytes.
     pub fn from_slice(sb: &[u8]) -> Result<Signature> {
-        let sig = ed25519::Signature::from_slice(sb).ok_or(Error::InvalidSignature)?;
-        Ok(Signature { sig })
+        // let sig = ed25519::Signature::from_slice(sb).ok_or(Error::InvalidSignature)?;
+        Ok(Signature(
+            sb.try_into().map_err(|_| Error::InvalidSignature)?,
+        ))
     }
 
     /// Length in bytes of the signature.
     pub fn len(&self) -> usize {
-        self.sig.0.len()
+        self.0.len()
     }
 
     /// Returns `true` if the signature has no bytes.
@@ -73,19 +73,18 @@ impl Signature {
 
     /// Convert to `Vec<u8>`.
     pub fn to_vec(&self) -> Vec<u8> {
-        self.sig.0.to_vec()
+        self.0.to_vec()
     }
 
     /// Inner buffer as slice.
     pub fn as_bytes(&self) -> &[u8] {
-        &self.sig.0
+        &self.0
     }
 
-    /// Verifise the signature againt the `data` and the `public` key.
-    /// Returns `true` if the signature is valid, `false` otherwise.
-    pub fn verify(&self, public: &PublicKey, data: &[u8]) -> bool {
-        ed25519::verify_detached(&self.sig, data, &public.inner())
-    }
+    // pub fn verify(&self, public: &PublicKey, data: &[u8]) -> bool {
+    //     // ed25519::verify_detached(&self.sig, data, &public.inner())
+    //     todo!()
+    // }
 
     /// Returns xdr object.
     pub fn to_xdr(&self) -> Result<xdr::Signature> {

@@ -1,11 +1,10 @@
 //! Transaction that changes the ledger state.
 use crate::amount::Stroops;
-use crate::crypto::{hash, KeyPair, MuxedAccount};
+use crate::crypto::{hash, DecoratedSignature, EddsaSigner, MuxedAccount};
 use crate::error::{Error, Result};
 use crate::memo::Memo;
 use crate::network::Network;
 use crate::operations::Operation;
-use crate::signature::DecoratedSignature;
 use crate::time_bounds::TimeBounds;
 use crate::xdr;
 use crate::xdr::{XDRDeserialize, XDRSerialize};
@@ -155,8 +154,8 @@ impl Transaction {
     }
 
     /// Sign transaction with `key` for `network`, and add signature.
-    pub fn sign(&mut self, key: &KeyPair, network: &Network) -> Result<()> {
-        let signature = self.decorated_signature(&key, &network)?;
+    pub fn sign(&mut self, key: &impl EddsaSigner, network: &Network) -> Result<()> {
+        let signature = self.decorated_signature(key, &network)?;
         self.signatures.push(signature);
         Ok(())
     }
@@ -169,7 +168,7 @@ impl Transaction {
     /// Returns the decorated signature of the transaction create with `key` for `network`.
     pub fn decorated_signature(
         &self,
-        key: &KeyPair,
+        key: &impl EddsaSigner,
         network: &Network,
     ) -> Result<DecoratedSignature> {
         let tx_hash = self.hash(&network)?;
@@ -353,8 +352,8 @@ impl FeeBumpTransaction {
     }
 
     /// Sign transaction with `key` for `network`, and add signature.
-    pub fn sign(&mut self, key: &KeyPair, network: &Network) -> Result<()> {
-        let signature = self.decorated_signature(&key, &network)?;
+    pub fn sign(&mut self, key: &impl EddsaSigner, network: &Network) -> Result<()> {
+        let signature = self.decorated_signature(key, &network)?;
         self.signatures.push(signature);
         Ok(())
     }
@@ -367,7 +366,7 @@ impl FeeBumpTransaction {
     /// Returns the decorated signature of the transaction create with `key` for `network`.
     pub fn decorated_signature(
         &self,
-        key: &KeyPair,
+        key: &impl EddsaSigner,
         network: &Network,
     ) -> Result<DecoratedSignature> {
         let tx_hash = self.hash(&network)?;
@@ -507,10 +506,10 @@ impl TransactionEnvelope {
     }
 
     /// Sign transaction with `key` for `network`, and add signature.
-    pub fn sign(&mut self, key: &KeyPair, network: &Network) -> Result<()> {
+    pub fn sign(&mut self, key: &impl EddsaSigner, network: &Network) -> Result<()> {
         match self {
-            TransactionEnvelope::Transaction(tx) => tx.sign(&key, &network),
-            TransactionEnvelope::FeeBumpTransaction(tx) => tx.sign(&key, &network),
+            TransactionEnvelope::Transaction(tx) => tx.sign(key, &network),
+            TransactionEnvelope::FeeBumpTransaction(tx) => tx.sign(key, &network),
         }
     }
 
@@ -527,12 +526,12 @@ impl TransactionEnvelope {
     /// Returns the decorated signature of the transaction create with `key` for `network`.
     pub fn decorated_signature(
         &self,
-        key: &KeyPair,
+        key: &impl EddsaSigner,
         network: &Network,
     ) -> Result<DecoratedSignature> {
         match self {
-            TransactionEnvelope::Transaction(tx) => tx.decorated_signature(&key, &network),
-            TransactionEnvelope::FeeBumpTransaction(tx) => tx.decorated_signature(&key, &network),
+            TransactionEnvelope::Transaction(tx) => tx.decorated_signature(key, &network),
+            TransactionEnvelope::FeeBumpTransaction(tx) => tx.decorated_signature(key, &network),
         }
     }
 
@@ -710,7 +709,7 @@ fn signatures_from_xdr(
 mod tests {
     use super::Transaction;
     use crate::amount::Stroops;
-    use crate::crypto::KeyPair;
+    use crate::crypto::{EddsaSigner, KeyPair};
     use crate::memo::Memo;
     use crate::operations::Operation;
     use crate::time_bounds::TimeBounds;

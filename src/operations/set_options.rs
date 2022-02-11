@@ -1,8 +1,7 @@
 use crate::account::AccountFlags;
-use crate::crypto::{MuxedAccount, PublicKey};
+use crate::crypto::{MuxedAccount, PublicKey, Signer};
 use crate::error::{Error, Result};
 use crate::operations::Operation;
-use crate::signature::Signer;
 use crate::xdr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -294,10 +293,9 @@ impl SetOptionsOperationBuilder {
 #[cfg(test)]
 mod tests {
     use crate::account::AccountFlags;
-    use crate::crypto::KeyPair;
+    use crate::crypto::{EddsaSigner, KeyPair, Signer, SignerKey};
     use crate::network::Network;
     use crate::operations::Operation;
-    use crate::signature::{Signer, SignerKey};
     use crate::transaction::{Transaction, TransactionEnvelope, MIN_BASE_FEE};
     use crate::xdr::{XDRDeserialize, XDRSerialize};
 
