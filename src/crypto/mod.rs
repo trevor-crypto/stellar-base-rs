@@ -20,6 +20,9 @@ pub fn hash(m: &[u8]) -> Vec<u8> {
     sha2::Sha256::digest(&m).to_vec()
 }
 
+/// A trait that covers functions of Ed25519 (EdDSA) signing
+/// Implement this on your custom signer, which may use any
+/// Ed25519 implementation
 pub trait EddsaSigner {
     /// Returns this key's PublicKey
     fn public_key(&self) -> PublicKey;
