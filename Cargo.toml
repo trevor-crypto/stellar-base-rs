@@ -16,7 +16,7 @@ base32 = "0.4.0"
 base64 = "0.13.0"
 bitflags = "1.2.1"
 byteorder = "1.4.2"
-chrono = "0.4.19"
+chrono = { version = "0.4.21", default-features = false }
 crc16 = "0.4.0"
 ed25519 = "1.5"
 json = "0.12.0"
@@ -41,5 +41,6 @@ rand = "0.7.3"
 ring-compat = "0.4.0"
 
 [features]
-default = ["sodium_oxide"]
+default = ["clock", "sodium_oxide"]
+clock = ["chrono/clock"]
 sodium_oxide = ["sodiumoxide"]

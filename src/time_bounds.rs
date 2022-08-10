@@ -2,7 +2,7 @@
 use crate::error::{Error, Result};
 use crate::xdr;
 use crate::xdr::{XDRDeserialize, XDRSerialize};
-use chrono::{DateTime, Duration, TimeZone, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 use xdr_rs_serialize::de::XDRIn;
 use xdr_rs_serialize::ser::XDROut;
 
@@ -15,7 +15,8 @@ pub struct TimeBounds {
 
 impl TimeBounds {
     /// Returns time bounds with the upper bounds set to `duration` in the future.
-    pub fn valid_for(duration: Duration) -> TimeBounds {
+    #[cfg(feature = "clock")]
+    pub fn valid_for(duration: chrono::Duration) -> TimeBounds {
         let lower = Utc::now();
         let upper = lower + duration;
         TimeBounds {
